@@ -1,0 +1,54 @@
+from code.model import qwen
+from code.prompts import build_triple_extraction_prompt, build_explanation_prompt
+from code.explanation import extract_explanation_for_triple
+from code.utils import (
+    load_file,
+    csv_to_text,
+    parse_triples,
+    extract_allowed_relations,
+    filter_triples,
+    ttl_to_metapaths,
+)
+import json
+
+
+def main():
+    schema = ttl_to_metapaths("files/GANNDALF-onto.ttl")
+
+    with open("files/schema_from_ttl.txt", "w", encoding="utf-8") as f:
+        f.write(schema)
+
+    example_out = load_file("files/example_out.txt")
+    example_dialogue = csv_to_text("files/example.csv")
+    case_dialogue = csv_to_text("files/case.csv")
+
+    prompt = build_triple_extraction_prompt(schema, example_dialogue, example_out, case_dialogue)
+    result = qwen.invoke(prompt)
+
+    triples = parse_triples(result)
+
+    allowed_relations = extract_allowed_relations(schema)
+    filtered_triples = filter_triples(triples, allowed_relations)
+
+    with open("files/triples_ttl.json", "w", encoding="utf-8") as f:
+        json.dump(filtered_triples, f, ensure_ascii=False, indent=2)
+
+    results = []
+    for item in filtered_triples:
+        triple = item["triple"]
+        explanation = extract_explanation_for_triple(
+            case_dialogue,
+            (triple["entity"], triple["attribute"], triple["value"]),
+            qwen
+        )
+
+        results.append({
+            "triple": triple,
+            "explanation": explanation
+        })
+
+    with open("files/triples_explanations.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+        
+if __name__ == "__main__":
+    main()

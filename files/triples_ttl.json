@@ -1,0 +1,58 @@
+[
+  {
+    "triple": {
+      "entity": "Harold Wilson",
+      "attribute": "communicates_with",
+      "value": "Kevin"
+    }
+  },
+  {
+    "triple": {
+      "entity": "Kevin",
+      "attribute": "communicates_with",
+      "value": "Harold Wilson"
+    }
+  },
+  {
+    "triple": {
+      "entity": "Kevin",
+      "attribute": "provides",
+      "value": "registration_link"
+    }
+  },
+  {
+    "triple": {
+      "entity": "Harold Wilson",
+      "attribute": "requests",
+      "value": "return_information"
+    }
+  },
+  {
+    "triple": {
+      "entity": "Harold Wilson",
+      "attribute": "requests",
+      "value": "investment_amount"
+    }
+  },
+  {
+    "triple": {
+      "entity": "Harold Wilson",
+      "attribute": "requests",
+      "value": "investment_confirmation"
+    }
+  },
+  {
+    "triple": {
+      "entity": "investment_service",
+      "attribute": "has_purpose",
+      "value": "generate_returns"
+    }
+  },
+  {
+    "triple": {
+      "entity": "CryptoGrowthX",
+      "attribute": "website",
+      "value": "http://www.CryptoGrowthX.com"
+    }
+  }
+]

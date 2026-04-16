@@ -1,0 +1,10 @@
+Margaret Thompson | communicates_with | Kevin
+Kevin | communicates_with | Margaret Thompson
+Kevin | provides | registration_link
+Margaret Thompson | requests | return_info
+Margaret Thompson | requests | safety_assurance
+Margaret Thompson | requests | registration
+Margaret Thompson | requests | return_time_info
+CryptoGrowthX | offers | investment_service
+investment_service | has_purpose | generate monthly returns
+CryptoGrowthX | website | http://www.CryptoGrowthX.com
