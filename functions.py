@@ -1,7 +1,6 @@
 import json
 from code.pipeline import main as run_pipeline
 
-
 def get_results_func():
     run_pipeline()
 

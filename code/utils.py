@@ -2,16 +2,13 @@ import csv
 import json
 from rdflib import Graph, RDF, RDFS, OWL
 
-
 def load_file(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read().strip()
 
-
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
 
 def csv_to_text(path):
     rows = []
@@ -28,7 +25,6 @@ def csv_to_text(path):
             rows.append(line)
 
     return "\n".join(rows)
-
 
 def parse_triples(raw_output):
     triples = []
@@ -53,7 +49,6 @@ def parse_triples(raw_output):
 
     return triples
 
-
 def extract_allowed_relations(schema_text):
     relations = set()
 
@@ -68,7 +63,6 @@ def extract_allowed_relations(schema_text):
 
     return relations
 
-
 def normalize_relation(r):
     r = r.strip()
 
@@ -80,7 +74,6 @@ def normalize_relation(r):
             new += c
 
     return new.lstrip("_")
-
 
 def filter_triples(triples, allowed_relations):
     filtered = []
@@ -96,13 +89,74 @@ def filter_triples(triples, allowed_relations):
 
     return filtered
 
+def infer_types_from_schema(triples, schema_text):
+    inferred = []
+    seen = set()
+
+    primitive_types = {
+        "string", "int", "integer", "float", "double",
+        "boolean", "dateTime", "dateTimeStamp"
+    }
+
+    schema_mappings = []
+    for line in schema_text.splitlines():
+        line = line.strip()
+        if not line or "|" not in line:
+            continue
+
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) != 3:
+            continue
+
+        domain, relation, range_ = parts
+        schema_mappings.append((domain, normalize_relation(relation), range_))
+
+    for item in triples:
+        t = item["triple"]
+        seen.add((t["entity"].strip(), t["attribute"].strip(), t["value"].strip()))
+
+    for item in triples:
+        t = item["triple"]
+        subj = t["entity"].strip()
+        rel = normalize_relation(t["attribute"])
+        obj = t["value"].strip()
+
+        for domain, relation, range_ in schema_mappings:
+            if rel != relation:
+                continue
+
+            key1 = (subj, "rdf:type", domain)
+            if key1 not in seen:
+                seen.add(key1)
+                inferred.append({
+                    "triple": {
+                        "entity": subj,
+                        "attribute": "rdf:type",
+                        "value": domain
+                    },
+                    "inferred": True
+                })
+
+            if range_ not in primitive_types:
+                key2 = (obj, "rdf:type", range_)
+                if key2 not in seen:
+                    seen.add(key2)
+                    inferred.append({
+                        "triple": {
+                            "entity": obj,
+                            "attribute": "rdf:type",
+                            "value": range_
+                        },
+                        "inferred": True
+                    })
+
+    return inferred
 
 def short(uri):
     uri = str(uri)
     if "#" in uri:
         return uri.split("#")[-1]
     return uri.split("/")[-1]
-
 
 def ttl_to_metapaths(path):
     g = Graph()

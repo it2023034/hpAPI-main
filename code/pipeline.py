@@ -8,9 +8,9 @@ from code.utils import (
     extract_allowed_relations,
     filter_triples,
     ttl_to_metapaths,
+    infer_types_from_schema
 )
 import json
-
 
 def main():
     schema = ttl_to_metapaths("files/GANNDALF-onto.ttl")
@@ -30,22 +30,31 @@ def main():
     allowed_relations = extract_allowed_relations(schema)
     filtered_triples = filter_triples(triples, allowed_relations)
 
+    inferred_triples = infer_types_from_schema(filtered_triples, schema)
+    all_triples = filtered_triples + inferred_triples
+
     with open("files/triples_ttl.json", "w", encoding="utf-8") as f:
-        json.dump(filtered_triples, f, ensure_ascii=False, indent=2)
+        json.dump(all_triples, f, ensure_ascii=False, indent=2)
 
     results = []
-    for item in filtered_triples:
+    for item in all_triples:
         triple = item["triple"]
-        explanation = extract_explanation_for_triple(
-            case_dialogue,
-            (triple["entity"], triple["attribute"], triple["value"]),
-            qwen
-        )
 
-        results.append({
+        if item.get("inferred"):
+            explanation = ""
+        else:
+            explanation = extract_explanation_for_triple(
+                case_dialogue,
+                (triple["entity"], triple["attribute"], triple["value"]),
+                qwen
+            )
+
+        entry = {
             "triple": triple,
             "explanation": explanation
-        })
+        }
+
+        results.append(entry)
 
     with open("files/triples_explanations.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
